@@ -1,0 +1,84 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Selecteer iConsole+ (ChangYow) apparaat",
+        "data": {
+          "address": "Bluetooth-apparaat"
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Wilt u {name} instellen?"
+      }
+    },
+    "abort": {
+      "already_configured": "Apparaat is al geconfigureerd",
+      "no_devices_found": "Geen iConsole+ (ChangYow) Bluetooth-apparaten gevonden"
+    }
+  },
+  "entity": {
+    "button": {
+      "start_resume": {
+        "name": "Start / Hervatten"
+      },
+      "pause": {
+        "name": "Pauze"
+      },
+      "stop": {
+        "name": "Stop"
+      }
+    },
+    "number": {
+      "target_inclination": {
+        "name": "Doelhelling"
+      },
+      "target_speed": {
+        "name": "Doelsnelheid"
+      }
+    },
+    "sensor": {
+      "connection_status": {
+        "name": "Verbindingsstatus",
+        "state": {
+          "disconnected": "Niet verbonden",
+          "connecting": "Verbinden…",
+          "sleeping": "Slaapstand",
+          "connected": "Verbonden (actief)",
+          "autonomous_running": "Autonome modus (geen telemetrie)"
+        }
+      },
+      "speed_instant": {
+        "name": "Snelheid"
+      },
+      "distance_total": {
+        "name": "Afstand"
+      },
+      "energy_total": {
+        "name": "Calorieën"
+      },
+      "heart_rate": {
+        "name": "Hartslag"
+      },
+      "inclination": {
+        "name": "Helling"
+      },
+      "time_elapsed": {
+        "name": "Verstreken tijd"
+      },
+      "training_status": {
+        "name": "Trainingsstatus",
+        "state": {
+          "idle": "Inactief",
+          "running": "Actief",
+          "paused": "Gepauzeerd",
+          "stopped": "Gestopt"
+        }
+      }
+    },
+    "switch": {
+      "connection": {
+        "name": "Bluetooth-verbinding"
+      }
+    }
+  }
+}

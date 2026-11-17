@@ -1,0 +1,28 @@
+{
+  "domain": "iconsole",
+  "name": "iConsole+ (ChangYow)",
+  "bluetooth": [
+    {
+      "local_name": "iConsole*"
+    },
+    {
+      "service_uuid": "0000fff0-0000-1000-8000-00805f9b34fb"
+    }
+  ],
+  "categories": [
+    "health_wellbeing"
+  ],
+  "codeowners": [
+    "@d-lebed"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "bluetooth_adapters"
+  ],
+  "documentation": "https://github.com/d-lebed/ha-iconsole",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/d-lebed/ha-iconsole/issues",
+  "requirements": [],
+  "version": "0.5.0"
+}

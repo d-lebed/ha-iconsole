@@ -1,0 +1,84 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Выберите устройство iConsole+ (ChangYow)",
+        "data": {
+          "address": "Bluetooth-устройство"
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Настроить дорожку {name}?"
+      }
+    },
+    "abort": {
+      "already_configured": "Устройство уже настроено",
+      "no_devices_found": "Bluetooth-устройства iConsole+ (ChangYow) не найдены"
+    }
+  },
+  "entity": {
+    "button": {
+      "start_resume": {
+        "name": "Старт / Продолжить"
+      },
+      "pause": {
+        "name": "Пауза"
+      },
+      "stop": {
+        "name": "Стоп"
+      }
+    },
+    "number": {
+      "target_inclination": {
+        "name": "Целевой наклон"
+      },
+      "target_speed": {
+        "name": "Целевая скорость"
+      }
+    },
+    "sensor": {
+      "connection_status": {
+        "name": "Статус подключения",
+        "state": {
+          "disconnected": "Отключена (выключена)",
+          "connecting": "Подключение…",
+          "sleeping": "Спящий режим",
+          "connected": "Подключена (активна)",
+          "autonomous_running": "Автономный режим (нет данных)"
+        }
+      },
+      "speed_instant": {
+        "name": "Скорость"
+      },
+      "distance_total": {
+        "name": "Дистанция"
+      },
+      "energy_total": {
+        "name": "Калории"
+      },
+      "heart_rate": {
+        "name": "Пульс"
+      },
+      "inclination": {
+        "name": "Наклон"
+      },
+      "time_elapsed": {
+        "name": "Время тренировки"
+      },
+      "training_status": {
+        "name": "Статус тренировки",
+        "state": {
+          "idle": "Ожидание",
+          "running": "Бег",
+          "paused": "Пауза",
+          "stopped": "Остановлена"
+        }
+      }
+    },
+    "switch": {
+      "connection": {
+        "name": "Bluetooth-подключение"
+      }
+    }
+  }
+}

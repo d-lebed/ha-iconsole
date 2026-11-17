@@ -1,0 +1,84 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vyberte zařízení iConsole+ (ChangYow)",
+        "data": {
+          "address": "Zařízení Bluetooth"
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Chcete nastavit {name}?"
+      }
+    },
+    "abort": {
+      "already_configured": "Zařízení je již nastaveno",
+      "no_devices_found": "Nebyla nalezena žádná Bluetooth zařízení iConsole+ (ChangYow)"
+    }
+  },
+  "entity": {
+    "button": {
+      "start_resume": {
+        "name": "Start / Pokračovat"
+      },
+      "pause": {
+        "name": "Pauza"
+      },
+      "stop": {
+        "name": "Stop"
+      }
+    },
+    "number": {
+      "target_inclination": {
+        "name": "Cílový sklon"
+      },
+      "target_speed": {
+        "name": "Cílová rychlost"
+      }
+    },
+    "sensor": {
+      "connection_status": {
+        "name": "Stav připojení",
+        "state": {
+          "disconnected": "Odpojeno",
+          "connecting": "Připojování…",
+          "sleeping": "Režim spánku",
+          "connected": "Připojeno (aktivní)",
+          "autonomous_running": "Autonomní režim (bez telemetrie)"
+        }
+      },
+      "speed_instant": {
+        "name": "Rychlost"
+      },
+      "distance_total": {
+        "name": "Vzdálenost"
+      },
+      "energy_total": {
+        "name": "Kalorie"
+      },
+      "heart_rate": {
+        "name": "Srdeční tep"
+      },
+      "inclination": {
+        "name": "Sklon"
+      },
+      "time_elapsed": {
+        "name": "Uplynulý čas"
+      },
+      "training_status": {
+        "name": "Stav tréninku",
+        "state": {
+          "idle": "Nečinný",
+          "running": "Běží",
+          "paused": "Pozastaveno",
+          "stopped": "Zastaveno"
+        }
+      }
+    },
+    "switch": {
+      "connection": {
+        "name": "Připojení Bluetooth"
+      }
+    }
+  }
+}

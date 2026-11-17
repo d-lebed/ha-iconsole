@@ -1,0 +1,84 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Selecionar dispositivo iConsole+ (ChangYow)",
+        "data": {
+          "address": "Dispositivo Bluetooth"
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Deseja configurar {name}?"
+      }
+    },
+    "abort": {
+      "already_configured": "O dispositivo já está configurado",
+      "no_devices_found": "Nenhum dispositivo Bluetooth iConsole+ (ChangYow) encontrado"
+    }
+  },
+  "entity": {
+    "button": {
+      "start_resume": {
+        "name": "Iniciar / Retomar"
+      },
+      "pause": {
+        "name": "Pausa"
+      },
+      "stop": {
+        "name": "Parar"
+      }
+    },
+    "number": {
+      "target_inclination": {
+        "name": "Inclinação alvo"
+      },
+      "target_speed": {
+        "name": "Velocidade alvo"
+      }
+    },
+    "sensor": {
+      "connection_status": {
+        "name": "Estado da ligação",
+        "state": {
+          "disconnected": "Desligado",
+          "connecting": "A ligar…",
+          "sleeping": "Em suspensão",
+          "connected": "Ligado (ativo)",
+          "autonomous_running": "Modo autónomo (sem telemetria)"
+        }
+      },
+      "speed_instant": {
+        "name": "Velocidade"
+      },
+      "distance_total": {
+        "name": "Distância"
+      },
+      "energy_total": {
+        "name": "Calorias"
+      },
+      "heart_rate": {
+        "name": "Frequência cardíaca"
+      },
+      "inclination": {
+        "name": "Inclinação"
+      },
+      "time_elapsed": {
+        "name": "Tempo decorrido"
+      },
+      "training_status": {
+        "name": "Estado do treino",
+        "state": {
+          "idle": "Inativo",
+          "running": "Em execução",
+          "paused": "Em pausa",
+          "stopped": "Parado"
+        }
+      }
+    },
+    "switch": {
+      "connection": {
+        "name": "Ligação Bluetooth"
+      }
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Оберіть пристрій iConsole+ (ChangYow)",
+        "data": {
+          "address": "Bluetooth-пристрій"
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Налаштувати доріжку {name}?"
+      }
+    },
+    "abort": {
+      "already_configured": "Пристрій вже налаштовано",
+      "no_devices_found": "Bluetooth-пристрої iConsole+ (ChangYow) не знайдено"
+    }
+  },
+  "entity": {
+    "button": {
+      "start_resume": {
+        "name": "Старт / Продовжити"
+      },
+      "pause": {
+        "name": "Пауза"
+      },
+      "stop": {
+        "name": "Стоп"
+      }
+    },
+    "number": {
+      "target_inclination": {
+        "name": "Цільовий нахил"
+      },
+      "target_speed": {
+        "name": "Цільова швидкість"
+      }
+    },
+    "sensor": {
+      "connection_status": {
+        "name": "Статус підключення",
+        "state": {
+          "disconnected": "Відключена (вимкнена)",
+          "connecting": "Підключення…",
+          "sleeping": "Сплячий режим",
+          "connected": "Підключена (активна)",
+          "autonomous_running": "Автономний режим (немає даних)"
+        }
+      },
+      "speed_instant": {
+        "name": "Швидкість"
+      },
+      "distance_total": {
+        "name": "Дистанція"
+      },
+      "energy_total": {
+        "name": "Калорії"
+      },
+      "heart_rate": {
+        "name": "Пульс"
+      },
+      "inclination": {
+        "name": "Нахил"
+      },
+      "time_elapsed": {
+        "name": "Час тренування"
+      },
+      "training_status": {
+        "name": "Статус тренування",
+        "state": {
+          "idle": "Очікування",
+          "running": "Біг",
+          "paused": "Пауза",
+          "stopped": "Зупинена"
+        }
+      }
+    },
+    "switch": {
+      "connection": {
+        "name": "Bluetooth-підключення"
+      }
+    }
+  }
+}
