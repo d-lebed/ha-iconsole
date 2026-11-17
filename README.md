@@ -20,7 +20,7 @@ Instead, they communicate over ChangYow's proprietary BLE UART service:
 
 This integration implements the proprietary ChangYow `0xF0` binary framing protocol directly on top of Home Assistant's native Bluetooth stack (`bleak` + `bleak-retry-connector`) with **zero external PyPI dependencies**.
 
-For a deep technical dive into the reverse-engineered packet format, opcodes, and console state machine, see **[docs/PROTOCOL.md](./docs/PROTOCOL.md)**.
+For a deep technical dive into the reverse-engineered packet format, opcodes, and console state machine, see **[docs/PROTOCOL.md](./docs/PROTOCOL.md)**. For release history, see **[CHANGELOG.md](./CHANGELOG.md)**.
 
 ---
 
@@ -114,3 +114,4 @@ This integration was made possible thanks to the reverse-engineering efforts and
 ## License
 
 This project is licensed under the [Apache License, Version 2.0](./LICENSE).
+
