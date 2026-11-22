@@ -4,6 +4,7 @@
 
 [![Validate](https://github.com/d-lebed/ha-iconsole/actions/workflows/validate.yml/badge.svg)](https://github.com/d-lebed/ha-iconsole/actions/workflows/validate.yml)
 [![Home Assistant Marketplace](https://img.shields.io/badge/Home%20Assistant-Marketplace-41BDF5.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=d-lebed&repository=ha-iconsole&category=integration)
+[![Downloads](https://img.shields.io/github/downloads/d-lebed/ha-iconsole/total.svg)](https://github.com/d-lebed/ha-iconsole/releases)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/lebiadz)
 

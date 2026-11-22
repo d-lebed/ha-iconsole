@@ -1,0 +1,32 @@
+name: Release ZIP
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-zip:
+    name: Build and Upload Release ZIP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build iconsole.zip
+        run: |
+          cd custom_components/iconsole
+          zip -r ../../iconsole.zip . \
+            -x ".*" \
+            -x "__pycache__/*" \
+            -x "*/__pycache__/*" \
+            -x "*.pyc"
+
+      - name: Verify ZIP contents
+        run: unzip -l iconsole.zip
+
+      - name: Upload iconsole.zip to Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" iconsole.zip --clobber
