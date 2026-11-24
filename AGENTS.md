@@ -24,7 +24,7 @@ It is structured as a 100% HACS-compliant and Hassfest-validated repository with
   - `number.py` — Revision-aware target controls (`Target inclination` on `00.D2`; `Target inclination` + `Target speed` on `00.D5`).
   - `switch.py` — `Bluetooth connection` switch allowing users to disconnect HA when using a mobile app or handrail controls.
   - `brand/` — Local integration icons (`icon.png`, `icon@2x.png`, `logo.png`, `logo@2x.png`).
-  - `manifest.json`, `strings.json`, `translations/` (`en`, `pl`, `de`, `fr`, `es`, `it`, `nl`, `pt`, `cs`, `uk`, `ru`).
+  - `manifest.json`, `translations/` (`en`, `pl`, `de`, `fr`, `es`, `it`, `nl`, `pt`, `cs`, `uk`, `ru`).
 - `docs/PROTOCOL.md` — Complete reverse-engineered ChangYow BLE protocol specification.
 - `CHANGELOG.md` — Version history following Keep a Changelog and Semantic Versioning.
 - `hacs.json` — HACS manifest.
@@ -50,6 +50,6 @@ It is structured as a 100% HACS-compliant and Hassfest-validated repository with
 
 Before committing or opening a PR:
 - Ensure `manifest.json` keys are sorted: `domain`, `name`, then alphabetical order (required by `hassfest`).
-- Keep `strings.json`, `translations/en.json`, and `translations/ru.json` synchronized.
+- Keep `translations/en.json` and the other locale files in `translations/` synchronized.
 - Ensure no debug-only `importlib.reload` hooks remain in `__init__.py` for production releases.
 - Never move or force-push an already published release tag. Bump `version` in `manifest.json`, update `CHANGELOG.md`, and cut a new SemVer tag/release instead.

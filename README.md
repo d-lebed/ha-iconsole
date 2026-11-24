@@ -57,6 +57,7 @@ This integration automatically detects the hardware revision from the serial num
 
 ---
 
+<!-- ha-marketplace:exclude-start -->
 ## Installation
 
 > **Note:** This integration is currently installed as a **Custom Repository** (it is not yet listed in the built-in default catalog). Starting with **Home Assistant 2026.11**, HACS ships built-in as **Settings → Marketplace**.
@@ -89,6 +90,7 @@ Click the button below to open this repository directly in your Home Assistant *
 2. Restart Home Assistant and add **iConsole+ (ChangYow)** under **Settings → Devices & Services → Add Integration**.
 
 ---
+<!-- ha-marketplace:exclude-end -->
 
 ## Credits & Acknowledgments
 
