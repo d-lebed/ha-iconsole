@@ -46,15 +46,15 @@ Every frame starts with `0xF0` (`STARTER`), followed by an action/response opcod
 ## 3. Hardware Revisions: `00.D2` (`TreadmillD2Protocol`) vs `00.D5` (`TreadmillD5Protocol`)
 
 The console's `MeterID` (from the Bluetooth Device Information serial number or the `0xB0` ACK reply) selects the protocol dialect:
-- **`0xD2` (`00.D2`)** — Classic treadmill revision (`TreadmillD2Protocol`).
-- **`0xD5` (`00.D5`)** — Newer D5 treadmill revision (`TreadmillD5Protocol`).
+- **`0xD2` (`00.D2`)** — Classic treadmill revision (`TreadmillD2Protocol`). Live-verified on **Zipro `iConsole+0017` (`SI1022`, serial `00.D2`)** for telemetry, `Stop`, and `Target inclination`.
+- **`0xD5` (`00.D5`)** — Newer D5 treadmill revision (`TreadmillD5Protocol`). **Read-only telemetry mode** in `main`: only `CMD_ACK` (`0xA0`), `CMD_GET_MAX_LEVEL` (`0xA1`), and `CMD_GET_STATUS` (`0xA2`) are sent. All belt/workout write commands (`Start`, `Pause`, `Stop`, `Incline`, `Speed`) and state/mode initialization writes are disabled until verified on physical `00.D5` hardware (tracked in [Issue #1](https://github.com/d-lebed/ha-iconsole/issues/1)).
 
 ### Key Structural Difference
 - On **`00.D2`**, commands do **not** include a length byte after the opcode; the payload starts immediately with `[client_id, meter_id, ...]`.
 - On **`00.D5`**, every command and response prepends a `length` byte before `client_id` and `meter_id`: `[length, client_id, meter_id, ...]`.
 
 Because of this, opcode `0xA6` has two different wire formats depending on revision:
-- On **`00.D5`**: `0xA6` (`CMD_D5_SET_SPEED`) is an **8-byte** command that sets live belt speed (`[0x04, cid, mid, spd_hi, spd_lo]`).
+- On **`00.D5`** *(documented from community research; write disabled in `main` pending hardware validation)*: `0xA6` (`CMD_D5_SET_SPEED`) is an **8-byte** command (`[0x04, cid, mid, spd_hi, spd_lo]`).
 - On **`00.D2`**: `0xA6` is a **25-byte** command containing 10 speed segments for preset programs. Sending an 8-byte `0xA6` packet to a `00.D2` console causes its parser to wait for the remaining 17 bytes, corrupting subsequent packets.
 
 ---

@@ -29,6 +29,8 @@ class TreadmillD2Protocol(TreadmillProtocol):
     """Protocol strategy for classic 00.D2 treadmills (e.g. ChangYow SI1022)."""
 
     supports_start_pause = False
+    supports_stop = True
+    supports_target_incline = True
     supports_target_speed = False
     requires_disconnect_on_stop = True
 

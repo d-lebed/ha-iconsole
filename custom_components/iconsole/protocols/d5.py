@@ -1,15 +1,11 @@
-"""Protocol implementation for newer 00.D5 ChangYow treadmills."""
+"""Protocol implementation for newer 00.D5 ChangYow treadmills (read-only telemetry)."""
 
 from __future__ import annotations
 
 from ..const import (
     CMD_ACK,
-    CMD_D5_SET_SPEED,
     CMD_GET_MAX_LEVEL,
     CMD_GET_STATUS,
-    CMD_SET_CONTROL_STATE,
-    CMD_SET_MODE,
-    CMD_SET_PARAM,
     RESP_ACK,
     RESP_D5_SET_SPEED,
     RESP_GET_MAX_LEVEL,
@@ -23,10 +19,16 @@ from .base import TreadmillLimits, TreadmillProtocol, TreadmillTelemetry, build_
 
 
 class TreadmillD5Protocol(TreadmillProtocol):
-    """Protocol strategy for newer 00.D5 treadmills (prepends length byte to frames)."""
+    """Protocol strategy for newer 00.D5 treadmills (prepends length byte to frames).
 
-    supports_start_pause = True
-    supports_target_speed = True
+    Workout and motor control writes (start, pause, stop, incline, speed) are
+    intentionally disabled until confirmed on physical 00.D5 hardware.
+    """
+
+    supports_start_pause = False
+    supports_stop = False
+    supports_target_incline = False
+    supports_target_speed = False
     requires_disconnect_on_stop = False
 
     def candidate_lengths(self, resp_code: int) -> tuple[int, ...]:
@@ -43,40 +45,31 @@ class TreadmillD5Protocol(TreadmillProtocol):
         }.get(resp_code, ())
 
     def build_init_packets(self, cid: int, mid: int) -> list[bytes]:
+        # Read-only handshake and hardware limits query; state/mode writes are
+        # disabled pending verification on a real 00.D5 console.
         return [
             build_packet(CMD_ACK, [0x00, 0x00]),
-            build_packet(CMD_SET_CONTROL_STATE, [0x03, cid, mid, 0x04]),
             build_packet(CMD_ACK, [cid, mid]),
             build_packet(CMD_GET_MAX_LEVEL, [0x02, cid, mid]),
-            build_packet(CMD_SET_MODE, [0x03, cid, mid, 0x00]),
-            build_packet(
-                CMD_SET_PARAM,
-                [0x0A, cid, mid, 0, 0, 0, 0, 0, 0, 0, 0],
-            ),
         ]
 
     def build_status_poll(self, cid: int, mid: int) -> bytes:
         return build_packet(CMD_GET_STATUS, [0x02, cid, mid])
 
     def build_start_packets(self, cid: int, mid: int, is_paused: bool) -> list[bytes]:
-        return [build_packet(CMD_SET_CONTROL_STATE, [0x03, cid, mid, 0x01])]
+        return []
 
     def build_pause_packets(self, cid: int, mid: int) -> list[bytes]:
-        return [build_packet(CMD_SET_CONTROL_STATE, [0x03, cid, mid, 0x03])]
+        return []
 
     def build_stop_packets(self, cid: int, mid: int) -> list[bytes]:
-        return [
-            build_packet(CMD_SET_CONTROL_STATE, [0x03, cid, mid, 0x02]),
-            build_packet(CMD_SET_CONTROL_STATE, [0x03, cid, mid, 0x04]),
-        ]
+        return []
 
     def build_incline_packets(self, cid: int, mid: int, incline: int) -> list[bytes]:
-        return [build_packet(0xA8, [0x03, cid, mid, incline])]
+        return []
 
     def build_speed_packets(self, cid: int, mid: int, speed_kmh: float) -> list[bytes]:
-        spd_x10 = int(round(speed_kmh * 10))
-        spd_hi, spd_lo = spd_x10 // 100, spd_x10 % 100
-        return [build_packet(CMD_D5_SET_SPEED, [0x04, cid, mid, spd_hi, spd_lo])]
+        return []
 
     def parse_limits(self, payload: list[int]) -> TreadmillLimits | None:
         if len(payload) < 8:

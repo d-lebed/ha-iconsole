@@ -602,6 +602,8 @@ class IConsoleClient:
     async def async_stop_workout(self) -> None:
         """Stop the workout using the protocol strategy."""
         stop_pkts = self.protocol.build_stop_packets(self.client_id, self.meter_id)
+        if not stop_pkts:
+            return
         if not self.protocol.requires_disconnect_on_stop:
             for pkt in stop_pkts:
                 await self._cmd_queue.put(pkt)
@@ -632,9 +634,12 @@ class IConsoleClient:
     async def async_set_incline(self, value: float) -> None:
         """Set target inclination level."""
         incline_int = max(0, min(int(round(value)), int(self.max_incline)))
-        for pkt in self.protocol.build_incline_packets(
+        pkts = self.protocol.build_incline_packets(
             self.client_id, self.meter_id, incline_int
-        ):
+        )
+        if not pkts:
+            return
+        for pkt in pkts:
             await self._cmd_queue.put(pkt)
         self.data[KEY_TARGET_INCLINE] = float(incline_int)
         if self._on_update:
@@ -643,9 +648,12 @@ class IConsoleClient:
     async def async_set_speed(self, value: float) -> None:
         """Set target speed in km/h."""
         spd = max(0.0, min(round(value, 1), self.max_speed))
-        for pkt in self.protocol.build_speed_packets(
+        pkts = self.protocol.build_speed_packets(
             self.client_id, self.meter_id, spd
-        ):
+        )
+        if not pkts:
+            return
+        for pkt in pkts:
             await self._cmd_queue.put(pkt)
         self.data[KEY_TARGET_SPEED] = spd
         if self._on_update:

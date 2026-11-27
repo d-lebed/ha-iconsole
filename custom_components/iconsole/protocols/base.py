@@ -59,6 +59,8 @@ class TreadmillProtocol(ABC):
     """Abstract base strategy for a ChangYow treadmill protocol revision."""
 
     supports_start_pause: bool = False
+    supports_stop: bool = False
+    supports_target_incline: bool = False
     supports_target_speed: bool = False
     requires_disconnect_on_stop: bool = False
 

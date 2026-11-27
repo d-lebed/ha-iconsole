@@ -30,17 +30,22 @@ For a deep technical dive into the reverse-engineered packet format, opcodes, an
 
 ChangYow treadmill consoles report their protocol revision in the Bluetooth Device Information Service (`0x180A` -> Serial Number `0x2A25`) in the format `<ClientID>.<MeterID>` (for example, `00.D2` or `00.D5`).
 
-This integration automatically detects the hardware revision from the serial number and tailors the exposed entities to match the hardware capabilities of the console:
+This integration automatically detects the hardware revision from the serial number and tailors the exposed entities to match the **verified** capabilities of the console:
 
 | Feature / Entity | Classic Treadmill (`XX.D2`, e.g. `SI1022`) | Newer D5 Treadmill (`XX.D5`) |
 | :--- | :---: | :---: |
-| **Live Telemetry Sensors** (Speed, Distance, Calories, Heart Rate, Incline, Elapsed Time, Training Status) | ✅ | ✅ |
+| **Live Telemetry Sensors** (Speed, Distance, Calories, Heart Rate, Incline, Elapsed Time, Training Status) | ✅ | ✅ *(Read-only)* |
 | **Diagnostic Connection Status Sensor** (`disconnected`, `connecting`, `sleeping`, `connected`, `autonomous_running`) | ✅ | ✅ |
 | **Bluetooth Connection Switch** (disconnect HA to free BLE for mobile apps or handrail keys) | ✅ | ✅ |
-| **Stop Workout Button** (`button.stop`) | ✅ | ✅ |
-| **Target Inclination** (`number.target_inclination`) | ✅ (`0xAC` Route Incline) | ✅ (`0xA8` D5 Incline) |
-| **Start / Pause Workout Buttons** (`button.start_resume`, `button.pause`) | ❌ *(Started from console panel for safety)* | ✅ |
-| **Live Target Speed Control** (`number.target_speed`) | ❌ *(Not supported by `00.D2` firmware)* | ✅ (`0xA6` D5 Speed) |
+| **Stop Workout Button** (`button.stop`) | ✅ | ⏸️ *(Disabled pending hardware verification)* |
+| **Target Inclination** (`number.target_inclination`) | ✅ (`0xAC` Route Incline) | ⏸️ *(Disabled pending hardware verification)* |
+| **Start / Pause Workout Buttons** (`button.start_resume`, `button.pause`) | ❌ *(Started from console panel for safety)* | ⏸️ *(Disabled pending hardware verification)* |
+| **Live Target Speed Control** (`number.target_speed`) | ❌ *(Not supported by `00.D2` firmware)* | ⏸️ *(Disabled pending hardware verification)* |
+
+> **Hardware Verification & Testers Wanted (`00.D5`):**
+> All `00.D2` telemetry and controls (`Stop` and `Target inclination`) have been verified on physical hardware (**Zipro `iConsole+0017`, model `SI1022`, serial `00.D2`**). Because belt and workout control writes on **`00.D5`** consoles have not yet been confirmed on a real `00.D5` treadmill, **`00.D5` support is intentionally read-only** (telemetry sensors and Bluetooth connection switch only) for safety.
+>
+> **Own a `00.D5` treadmill?** We are looking for volunteers to help safely test and verify `00.D5` controls! The draft implementation is preserved on the [`feat/d5-controls`](https://github.com/d-lebed/ha-iconsole/tree/feat/d5-controls) branch—please see **[Issue #1](https://github.com/d-lebed/ha-iconsole/issues/1)** for instructions and to share your hardware test results.
 
 ---
 

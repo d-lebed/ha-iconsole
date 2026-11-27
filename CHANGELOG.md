@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4] - 2026-11-27
+
+### Changed
+- **Safety (`00.D5`)**: Disabled all unverified workout and motor control writes on `00.D5` consoles (`Start / Resume`, `Pause`, `Stop`, `Target inclination`, `Target speed`, and state/mode writes during initialization) so `00.D5` operates in read-only telemetry mode until confirmed on physical `00.D5` hardware (tracked in [Issue #1](https://github.com/d-lebed/ha-iconsole/issues/1); draft control code preserved on the `feat/d5-controls` branch).
+- Verified `00.D2` controls (`Stop` button and `Target inclination`) and all telemetry sensors remain unchanged.
+
 ## [0.5.3] - 2026-11-24
 
 ### Changed
@@ -35,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translations for 11 languages: English (`en`), Polish (`pl`), German (`de`), French (`fr`), Spanish (`es`), Italian (`it`), Dutch (`nl`), Portuguese (`pt`), Czech (`cs`), Ukrainian (`uk`), and Russian (`ru`).
 - Protocol technical reference (`docs/PROTOCOL.md`) and HACS / Hassfest validation workflows.
 
+[0.5.4]: https://github.com/d-lebed/ha-iconsole/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/d-lebed/ha-iconsole/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/d-lebed/ha-iconsole/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/d-lebed/ha-iconsole/compare/v0.5.0...v0.5.1

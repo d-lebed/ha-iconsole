@@ -42,19 +42,24 @@ async def async_setup_entry(
     entry: IConsoleConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up iConsole+ number entities based on hardware revision (00.D2 vs 00.D5)."""
+    """Set up iConsole+ number entities based on verified protocol capabilities."""
     client = entry.runtime_data.client
     unique_prefix = entry.runtime_data.unique_id
     ent_reg = er.async_get(hass)
 
-    incline_desc = dc.replace(
-        _INCLINE_DESCRIPTION,
-        native_min_value=client.min_incline,
-        native_max_value=client.max_incline,
-    )
-    entities: list[IConsoleNumberEntity] = [
-        IConsoleNumberEntity(entry=entry, description=incline_desc),
-    ]
+    entities: list[IConsoleNumberEntity] = []
+
+    if client.protocol.supports_target_incline:
+        incline_desc = dc.replace(
+            _INCLINE_DESCRIPTION,
+            native_min_value=client.min_incline,
+            native_max_value=client.max_incline,
+        )
+        entities.append(IConsoleNumberEntity(entry=entry, description=incline_desc))
+    elif ent_id := ent_reg.async_get_entity_id(
+        "number", DOMAIN, f"{unique_prefix}-{KEY_TARGET_INCLINE}"
+    ):
+        ent_reg.async_remove(ent_id)
 
     if client.protocol.supports_target_speed:
         speed_desc = dc.replace(
@@ -63,14 +68,13 @@ async def async_setup_entry(
             native_max_value=client.max_speed,
         )
         entities.append(IConsoleNumberEntity(entry=entry, description=speed_desc))
-    else:
-        # 00.D2 does not support live speed control over BLE (only route inclination via 0xAC)
-        if ent_id := ent_reg.async_get_entity_id(
-            "number", DOMAIN, f"{unique_prefix}-{KEY_TARGET_SPEED}"
-        ):
-            ent_reg.async_remove(ent_id)
+    elif ent_id := ent_reg.async_get_entity_id(
+        "number", DOMAIN, f"{unique_prefix}-{KEY_TARGET_SPEED}"
+    ):
+        ent_reg.async_remove(ent_id)
 
-    async_add_entities(entities)
+    if entities:
+        async_add_entities(entities)
 
 
 class IConsoleNumberEntity(IConsoleEntity, NumberEntity):

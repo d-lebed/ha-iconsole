@@ -17,15 +17,11 @@ BUTTON_START = "start_resume"
 BUTTON_PAUSE = "pause"
 BUTTON_STOP = "stop"
 
-_D2_BUTTON_DESCRIPTIONS: tuple[ButtonEntityDescription, ...] = (
-    ButtonEntityDescription(key=BUTTON_STOP, icon="mdi:stop"),
-)
+_START_DESCRIPTION = ButtonEntityDescription(key=BUTTON_START, icon="mdi:play")
+_PAUSE_DESCRIPTION = ButtonEntityDescription(key=BUTTON_PAUSE, icon="mdi:pause")
+_STOP_DESCRIPTION = ButtonEntityDescription(key=BUTTON_STOP, icon="mdi:stop")
 
-_D5_BUTTON_DESCRIPTIONS: tuple[ButtonEntityDescription, ...] = (
-    ButtonEntityDescription(key=BUTTON_START, icon="mdi:play"),
-    ButtonEntityDescription(key=BUTTON_PAUSE, icon="mdi:pause"),
-    ButtonEntityDescription(key=BUTTON_STOP, icon="mdi:stop"),
-)
+_ALL_BUTTON_KEYS: tuple[str, ...] = (BUTTON_START, BUTTON_PAUSE, BUTTON_STOP, "reset")
 
 
 async def async_setup_entry(
@@ -33,30 +29,30 @@ async def async_setup_entry(
     entry: IConsoleConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up iConsole+ control buttons based on hardware revision (00.D2 vs 00.D5)."""
+    """Set up iConsole+ control buttons based on verified protocol capabilities."""
     client = entry.runtime_data.client
     unique_prefix = entry.runtime_data.unique_id
     ent_reg = er.async_get(hass)
 
+    descriptions: list[ButtonEntityDescription] = []
     if client.protocol.supports_start_pause:
-        descriptions = _D5_BUTTON_DESCRIPTIONS
-        obsolete_keys = ("reset",)
-    else:
-        # 00.D2 treadmills require starting from the physical console panel for safety;
-        # only Stop is exposed over BLE.
-        descriptions = _D2_BUTTON_DESCRIPTIONS
-        obsolete_keys = (BUTTON_START, BUTTON_PAUSE, "reset")
+        descriptions.extend((_START_DESCRIPTION, _PAUSE_DESCRIPTION))
+    if client.protocol.supports_stop:
+        descriptions.append(_STOP_DESCRIPTION)
 
-    for key in obsolete_keys:
-        if ent_id := ent_reg.async_get_entity_id(
-            "button", DOMAIN, f"{unique_prefix}-{key}"
-        ):
-            ent_reg.async_remove(ent_id)
+    active_keys = {desc.key for desc in descriptions}
+    for key in _ALL_BUTTON_KEYS:
+        if key not in active_keys:
+            if ent_id := ent_reg.async_get_entity_id(
+                "button", DOMAIN, f"{unique_prefix}-{key}"
+            ):
+                ent_reg.async_remove(ent_id)
 
-    async_add_entities(
-        IConsoleButtonEntity(entry=entry, description=desc)
-        for desc in descriptions
-    )
+    if descriptions:
+        async_add_entities(
+            IConsoleButtonEntity(entry=entry, description=desc)
+            for desc in descriptions
+        )
 
 
 class IConsoleButtonEntity(IConsoleEntity, ButtonEntity):
