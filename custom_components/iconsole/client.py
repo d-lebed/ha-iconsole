@@ -171,6 +171,7 @@ class IConsoleClient:
         self.need_connect: bool = True
         self._connecting: bool = False
         self._poll_task: asyncio.Task[None] | None = None
+        self._reconnect_task: asyncio.Task[None] | None = None
         self._cmd_queue: asyncio.Queue[bytes] = asyncio.Queue()
         self._rx_buf = bytearray()
         self._got_any_rx = False
@@ -357,7 +358,9 @@ class IConsoleClient:
     async def disconnect(self) -> None:
         """Disconnect from the treadmill and stop background polling."""
         self.need_connect = False
+        self._stop_reconnect_task()
         self._stop_poll_task()
+        self._clear_cmd_queue()
         self._console_awake = False
         cli = self._cli
         self._cli = None
@@ -372,9 +375,22 @@ class IConsoleClient:
             self._poll_task.cancel()
         self._poll_task = None
 
+    def _stop_reconnect_task(self) -> None:
+        if self._reconnect_task and not self._reconnect_task.done():
+            self._reconnect_task.cancel()
+        self._reconnect_task = None
+
+    def _clear_cmd_queue(self) -> None:
+        while not self._cmd_queue.empty():
+            try:
+                self._cmd_queue.get_nowait()
+            except asyncio.QueueEmpty:
+                break
+
     def _handle_ble_disconnect(self, _cli: BleakClient) -> None:
         _LOGGER.info("IConsole: %s (%s) disconnected", self.name, self.address)
         self._stop_poll_task()
+        self._clear_cmd_queue()
         self._console_awake = False
         self._cli = None
         self.data[KEY_CONNECTION_STATUS] = CONN_DISCONNECTED
@@ -468,6 +484,7 @@ class IConsoleClient:
                         new_conn_status,
                     )
                     self._console_awake = False
+                    self._clear_cmd_queue()
                     self.data[KEY_SPEED] = 0.0
                     self.data[KEY_TRAINING_STATUS] = STATUS_IDLE
                     self.data[KEY_CONNECTION_STATUS] = new_conn_status
@@ -657,16 +674,22 @@ class IConsoleClient:
                 "IConsole: Closing BLE session to complete stop sequence; will auto-reconnect"
             )
             await cli.disconnect()
-            asyncio.create_task(self._reconnect_after_stop())
+            self._stop_reconnect_task()
+            self._reconnect_task = asyncio.create_task(self._reconnect_after_stop())
 
     async def _reconnect_after_stop(self) -> None:
         """Reconnect to the treadmill after the stop-disconnect sequence."""
-        await asyncio.sleep(3.0)
-        if self.need_connect and not self.is_connected and not self.is_connecting:
-            try:
-                await self.connect()
-            except Exception as err:
-                _LOGGER.debug("IConsole: Reconnect after stop failed: %s", err)
+        try:
+            await asyncio.sleep(3.0)
+            if self.need_connect and not self.is_connected and not self.is_connecting:
+                try:
+                    await self.connect()
+                except Exception as err:
+                    _LOGGER.debug("IConsole: Reconnect after stop failed: %s", err)
+        except asyncio.CancelledError:
+            return
+        finally:
+            self._reconnect_task = None
 
     async def async_set_incline(self, value: float) -> None:
         """Set target inclination level."""
