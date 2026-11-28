@@ -30,7 +30,6 @@ from .entity import IConsoleEntity
 SENSOR_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key=KEY_CONNECTION_STATUS,
-        name="Connection status",
         device_class=SensorDeviceClass.ENUM,
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:bluetooth-connect",
