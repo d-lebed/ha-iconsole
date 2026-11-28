@@ -15,7 +15,8 @@ It is structured as a 100% HACS-compliant and Hassfest-validated repository with
     - `base.py` — `TreadmillProtocol` (ABC), `TreadmillLimits`, `TreadmillTelemetry`, and ChangYow `0xF0` packet framing (`+1` encoding and checksum).
     - `d2.py` — `TreadmillD2Protocol` for classic `00.D2` treadmills (e.g. `SI1022`).
     - `d5.py` — `TreadmillD5Protocol` for newer `00.D5` treadmills (prepends length byte; read-only telemetry until D5 writes are verified on physical hardware).
-    - `__init__.py` — `get_protocol(meter_id)` factory and exports.
+    - `readonly.py` — `TreadmillReadOnlyProtocol` fail-safe read-only fallback for unknown or unreadable `MeterID`s.
+    - `__init__.py` — `get_protocol(meter_id)` allowlist factory and exports.
   - `config_flow.py` — Bluetooth auto-discovery (`iConsole*` and service `0xFFF0`) and manual user device selection flow.
   - `const.py` — GATT UUIDs, command/response opcodes (`0xA0..0xAF`, `0xB0..0xBF`), entity keys, and status enums.
   - `entity.py` — Base `IConsoleEntity` (`CoordinatorEntity` + `RestoreEntity`).
@@ -28,13 +29,15 @@ It is structured as a 100% HACS-compliant and Hassfest-validated repository with
 - `docs/PROTOCOL.md` — Complete reverse-engineered ChangYow BLE protocol specification.
 - `CHANGELOG.md` — Version history following Keep a Changelog and Semantic Versioning.
 - `hacs.json` — HACS manifest.
-- `.github/workflows/validate.yml` — GitHub Actions workflow running official `hacs/action` and `home-assistant/actions/hassfest`.
+- `tests/test_protocols.py` — Unit tests for frame codec, `get_protocol` dispatch, D2/D5 parsing, and read-only safety invariants.
+- `.github/workflows/validate.yml` — GitHub Actions workflow running official `hacs/action`, `home-assistant/actions/hassfest`, and unit tests.
 
 ## Critical Protocol & Hardware Rules (Do Not Regress)
 
 1. **Write-Without-Response (`response=False`)**:
    The ChangYow write characteristic (`0000fff2-0000-1000-8000-00805f9b34fb`) on `SI1022` consoles advertises both `write` and `write-without-response`, but silently drops GATT Write-With-Response requests. Always prefer `write-without-response` (`response=False`) when supported by the characteristic.
-2. **Hardware Revisions (`00.D2` vs `00.D5`)**:
+2. **Hardware Revisions (`00.D2` vs `00.D5` vs Unknown)**:
+   - `get_protocol(meter_id)` uses an explicit allowlist: only verified `0xD2` receives write capabilities; `0xD5` and any unknown/`None` revision receive read-only protocols (`TreadmillD5Protocol` / `TreadmillReadOnlyProtocol`). Never fabricate `"00.D2"` when Device Information Service (`0x180A`) cannot be read.
    - `TreadmillD5Protocol` (`meter_id == 0xD5`) handles newer D5 consoles, which prepend a length byte to every command/response. On `main`, `TreadmillD5Protocol` is **read-only** (`supports_start_pause = supports_stop = supports_target_incline = supports_target_speed = False`) and must not send unverified belt/workout write commands until confirmed on physical `00.D5` hardware (see `feat/d5-controls` branch and Issue #1).
    - `TreadmillD2Protocol` (`meter_id == 0xD2`) handles classic consoles, which do **not** prepend a length byte, treat `0xA6` as a 25-byte program speed profile (never send an 8-byte `0xA6` to `00.D2`!), and support verified `Stop` and `Target inclination` (`0xAC`) controls.
 3. **Console Panel Unlock (`CMD_SET_KEY_LOCK` `0xAF` on `00.D2`)**:

@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Fail-safe `TreadmillReadOnlyProtocol` fallback for unknown or unreadable console `MeterID` revisions, preventing untested consoles from receiving `00.D2` write commands.
+- Automatic config entry reload and device registry metadata sync when a previously unidentified console reports its real hardware revision via DIS or `0xB0`.
+- Protocol unit test suite (`tests/test_protocols.py`) and CI `unit-tests` job in `.github/workflows/validate.yml`.
+
+### Changed
+- Removed hardcoded `"00.D2"` / `"SI1022"` serial/model fallbacks in `config_flow.py`, `__init__.py`, and `client.py` when DIS (`0x180A`) cannot be read.
+- Updated `README.md` installation instructions to reflect inclusion in the default Home Assistant Marketplace / HACS catalog.
+
+### Fixed
+- Removed hardcoded `name="Connection status"` in `sensor.py` so `connection_status` uses its localized name across all 11 supported languages.
+- Canceled pending post-stop reconnect tasks on manual disconnect/unload and drained stale queued commands on disconnect or console sleep.
+
 ## [0.5.4] - 2026-11-27
 
 ### Changed

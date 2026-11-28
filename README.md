@@ -42,8 +42,8 @@ This integration automatically detects the hardware revision from the serial num
 | **Start / Pause Workout Buttons** (`button.start_resume`, `button.pause`) | ❌ *(Started from console panel for safety)* | ⏸️ *(Disabled pending hardware verification)* |
 | **Live Target Speed Control** (`number.target_speed`) | ❌ *(Not supported by `00.D2` firmware)* | ⏸️ *(Disabled pending hardware verification)* |
 
-> **Hardware Verification & Testers Wanted (`00.D5`):**
-> All `00.D2` telemetry and controls (`Stop` and `Target inclination`) have been verified on physical hardware (**Zipro `iConsole+0017`, model `SI1022`, serial `00.D2`**). Because belt and workout control writes on **`00.D5`** consoles have not yet been confirmed on a real `00.D5` treadmill, **`00.D5` support is intentionally read-only** (telemetry sensors and Bluetooth connection switch only) for safety.
+> **Hardware Verification & Testers Wanted (`00.D5` & other revisions):**
+> All `00.D2` telemetry and controls (`Stop` and `Target inclination`) have been verified on physical hardware (**Zipro `iConsole+0017`, model `SI1022`, serial `00.D2`**). Because belt and workout control writes on **`00.D5`** and other unverified console revisions have not yet been confirmed on physical hardware, **`00.D5` and any unknown/unreadable revisions operate in read-only mode** (telemetry sensors and Bluetooth connection switch only) for safety.
 >
 > **Own a `00.D5` treadmill?** We are looking for volunteers to help safely test and verify `00.D5` controls! The draft implementation is preserved on the [`feat/d5-controls`](https://github.com/d-lebed/ha-iconsole/tree/feat/d5-controls) branch—please see **[Issue #1](https://github.com/d-lebed/ha-iconsole/issues/1)** for instructions and to share your hardware test results.
 
@@ -65,27 +65,21 @@ This integration automatically detects the hardware revision from the serial num
 <!-- ha-marketplace:exclude-start -->
 ## Installation
 
-> **Note:** This integration is currently installed as a **Custom Repository** (it is not yet listed in the built-in default catalog). Starting with **Home Assistant 2026.11**, HACS ships built-in as **Settings → Marketplace**.
+This integration is available in the default **Home Assistant Marketplace** (built into Home Assistant 2026.11+) and **HACS** catalog.
 
 ### Option 1: One-Click via My Home Assistant (Recommended)
 
-Click the button below to open this repository directly in your Home Assistant **Marketplace** (or **HACS** on Home Assistant 2026.10 and older). Since the repository is not yet in the default catalog, Home Assistant will automatically prompt you to add `d-lebed/ha-iconsole` as a custom integration repository first:
+Click the button below to open this integration directly in your Home Assistant **Marketplace**:
 
 [![Open your Home Assistant instance and open a repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=d-lebed&repository=ha-iconsole&category=integration)
 
-*(On Home Assistant 2026.10 or older with standalone HACS, you can also use the [legacy HACS redirect link](https://my.home-assistant.io/redirect/hacs_repository/?owner=d-lebed&repository=ha-iconsole&category=integration).)*
+*(On Home Assistant 2026.10 or older with standalone HACS, use the [legacy HACS redirect link](https://my.home-assistant.io/redirect/hacs_repository/?owner=d-lebed&repository=ha-iconsole&category=integration).)*
 
-### Option 2: Adding as a Custom Repository in Home Assistant Marketplace (2026.11+)
+### Option 2: Install from Home Assistant Marketplace / HACS
 
-1. In Home Assistant, go to **Settings → Marketplace** (or **HACS** on 2026.10 and older).
-2. Click the three-dots menu (`⋮`) in the top-right corner and select **Custom repositories**.
-3. Paste the repository URL:
-   ```text
-   https://github.com/d-lebed/ha-iconsole
-   ```
-4. Select type/category **Integration** and click **Add**.
-5. Find **iConsole+ (ChangYow)** in the list and click **Install**.
-6. Once installed, your treadmill will be auto-discovered via Bluetooth under **Settings → Devices & Services**, or you can start the setup directly:
+1. In Home Assistant, go to **Settings → Marketplace** (or **HACS** on Home Assistant 2026.10 and older).
+2. Search for **iConsole+ (ChangYow)** and click **Install**.
+3. Once installed, your treadmill will be auto-discovered via Bluetooth under **Settings → Devices & Services**, or you can start the setup directly:
 
    [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=iconsole)
 

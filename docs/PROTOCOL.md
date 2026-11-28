@@ -45,9 +45,10 @@ Every frame starts with `0xF0` (`STARTER`), followed by an action/response opcod
 
 ## 3. Hardware Revisions: `00.D2` (`TreadmillD2Protocol`) vs `00.D5` (`TreadmillD5Protocol`)
 
-The console's `MeterID` (from the Bluetooth Device Information serial number or the `0xB0` ACK reply) selects the protocol dialect:
+The console's `MeterID` (from the Bluetooth Device Information serial number or the `0xB0` ACK reply) selects the protocol dialect using an explicit allowlist:
 - **`0xD2` (`00.D2`)** — Classic treadmill revision (`TreadmillD2Protocol`). Live-verified on **Zipro `iConsole+0017` (`SI1022`, serial `00.D2`)** for telemetry, `Stop`, and `Target inclination`.
 - **`0xD5` (`00.D5`)** — Newer D5 treadmill revision (`TreadmillD5Protocol`). **Read-only telemetry mode** in `main`: only `CMD_ACK` (`0xA0`), `CMD_GET_MAX_LEVEL` (`0xA1`), and `CMD_GET_STATUS` (`0xA2`) are sent. All belt/workout write commands (`Start`, `Pause`, `Stop`, `Incline`, `Speed`) and state/mode initialization writes are disabled until verified on physical `00.D5` hardware (tracked in [Issue #1](https://github.com/d-lebed/ha-iconsole/issues/1)).
+- **Unknown / unreadable `MeterID`** — Fail-safe read-only fallback (`TreadmillReadOnlyProtocol`). When DIS cannot be read or an unrecognized `MeterID` is reported, no write commands are sent and no control entities are exposed. If a previously unidentified console later identifies itself as `00.D2`, the integration persists its revision and reloads automatically.
 
 ### Key Structural Difference
 - On **`00.D2`**, commands do **not** include a length byte after the opcode; the payload starts immediately with `[client_id, meter_id, ...]`.
