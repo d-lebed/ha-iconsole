@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.6.0] - 2026-11-28
 
 ### Added
 - Fail-safe `TreadmillReadOnlyProtocol` fallback for unknown or unreadable console `MeterID` revisions, preventing untested consoles from receiving `00.D2` write commands.
@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translations for 11 languages: English (`en`), Polish (`pl`), German (`de`), French (`fr`), Spanish (`es`), Italian (`it`), Dutch (`nl`), Portuguese (`pt`), Czech (`cs`), Ukrainian (`uk`), and Russian (`ru`).
 - Protocol technical reference (`docs/PROTOCOL.md`) and HACS / Hassfest validation workflows.
 
+[0.6.0]: https://github.com/d-lebed/ha-iconsole/compare/v0.5.4...v0.6.0
 [0.5.4]: https://github.com/d-lebed/ha-iconsole/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/d-lebed/ha-iconsole/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/d-lebed/ha-iconsole/compare/v0.5.1...v0.5.2
