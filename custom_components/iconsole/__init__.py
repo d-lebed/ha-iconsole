@@ -49,8 +49,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: IConsoleConfigEntry) -> 
         entry.data.get(CONF_DEVICE_INFO)
         or {
             "manufacturer": "ChangYow",
-            "model": "SI1022",
-            "serial_number": "00.D2",
+            "model": "iConsole+",
         }
     )
 
@@ -60,6 +59,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: IConsoleConfigEntry) -> 
         name=f"{DOMAIN}_{address}",
     )
 
+    unique_id = "".join(x for x in address if x.isalnum()).lower()
+    platforms_loaded = False
+    reload_scheduled = False
+
     @callback
     def _on_update(data: dict[str, Any]) -> None:
         coordinator.async_set_updated_data(dict(data))
@@ -67,6 +70,37 @@ async def async_setup_entry(hass: HomeAssistant, entry: IConsoleConfigEntry) -> 
     @callback
     def _on_disconnect() -> None:
         coordinator.async_set_updated_data(dict(client.data))
+
+    @callback
+    def _sync_device_info() -> None:
+        if client.device_info and client.device_info != entry.data.get(CONF_DEVICE_INFO):
+            hass.config_entries.async_update_entry(
+                entry,
+                data={**entry.data, CONF_DEVICE_INFO: dict(client.device_info)},
+            )
+            dev_reg = dr.async_get(hass)
+            if device := dev_reg.async_get_device(identifiers={(DOMAIN, unique_id)}):
+                dev_reg.async_update_device(
+                    device.id,
+                    manufacturer=client.device_info.get("manufacturer", "ChangYow"),
+                    model=client.device_info.get("model", "iConsole+"),
+                    serial_number=client.device_info.get("serial_number"),
+                    hw_version=client.device_info.get("hw_version"),
+                    sw_version=client.device_info.get("sw_version"),
+                )
+
+    @callback
+    def _on_protocol_change() -> None:
+        nonlocal reload_scheduled
+        _sync_device_info()
+        if platforms_loaded and not reload_scheduled:
+            reload_scheduled = True
+            _LOGGER.info(
+                "iConsole+ %s identified revision %s; reloading entry to update entities",
+                entry.title,
+                client.device_info.get("serial_number", "unknown"),
+            )
+            hass.config_entries.async_schedule_reload(entry.entry_id)
 
     srv_info = bluetooth.async_last_service_info(hass, address)
     client = IConsoleClient(
@@ -76,6 +110,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: IConsoleConfigEntry) -> 
         device_info=cached_info,
         on_update=_on_update,
         on_disconnect=_on_disconnect,
+        on_protocol_change=_on_protocol_change,
     )
     coordinator.data = dict(client.data)
 
@@ -96,7 +131,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: IConsoleConfigEntry) -> 
             data={**entry.data, CONF_DEVICE_INFO: dict(client.device_info)},
         )
 
-    unique_id = "".join(x for x in address if x.isalnum()).lower()
     device_info = dr.DeviceInfo(
         connections={(dr.CONNECTION_BLUETOOTH, address)},
         identifiers={(DOMAIN, unique_id)},
@@ -121,13 +155,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: IConsoleConfigEntry) -> 
     async def _async_connect_in_background() -> None:
         try:
             await client.connect()
-            if client.device_info and client.device_info != entry.data.get(
-                CONF_DEVICE_INFO
-            ):
-                hass.config_entries.async_update_entry(
-                    entry,
-                    data={**entry.data, CONF_DEVICE_INFO: dict(client.device_info)},
-                )
+            _sync_device_info()
         except Exception as err:
             _LOGGER.debug("Background connect to %s failed: %s", address, err)
 
@@ -156,6 +184,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: IConsoleConfigEntry) -> 
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    platforms_loaded = True
 
     async def _async_hass_stop_handler(_event: Event) -> None:
         await client.disconnect()

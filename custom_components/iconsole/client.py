@@ -54,6 +54,7 @@ from .const import (
 )
 from .protocols import (
     TreadmillProtocol,
+    TreadmillReadOnlyProtocol,
     build_packet,
     decode_packet,
     get_protocol,
@@ -140,6 +141,7 @@ class IConsoleClient:
         device_info: dict[str, str] | None = None,
         on_update: Callable[[dict[str, Any]], None] | None = None,
         on_disconnect: Callable[[], None] | None = None,
+        on_protocol_change: Callable[[], None] | None = None,
     ) -> None:
         self.address = address
         self.name = name
@@ -149,16 +151,18 @@ class IConsoleClient:
             or {
                 "manufacturer": "ChangYow",
                 "model": "iConsole+",
-                "serial_number": "00.D2",
             }
         )
         self._on_update = on_update
         self._on_disconnect_cb = on_disconnect
+        self._on_protocol_change = on_protocol_change
 
-        self.client_id = 0x00
-        self.meter_id = 0xD2
-        self._parse_serial_ids(self.device_info.get("serial_number", ""))
-        self.protocol: TreadmillProtocol = get_protocol(self.meter_id)
+        self.client_id: int = 0x00
+        self.meter_id: int | None = None
+        self.protocol: TreadmillProtocol = get_protocol(None)
+        self._parse_serial_ids(
+            self.device_info.get("serial_number", ""), notify=False
+        )
 
         self._cli: BleakClient | None = None
         self._notify_char: BleakGATTCharacteristic | None = None
@@ -196,15 +200,41 @@ class IConsoleClient:
             KEY_TARGET_SPEED: 0.0,
         }
 
-    def _parse_serial_ids(self, serial_number: str) -> None:
+    def _parse_serial_ids(self, serial_number: str, *, notify: bool = True) -> None:
         if "." in serial_number:
             parts = serial_number.split(".")
             try:
                 self.client_id = int(parts[0], 16) & 0xFF
-                self.meter_id = int(parts[1], 16) & 0xFF
-                self.protocol = get_protocol(self.meter_id)
+                meter_id = int(parts[1], 16) & 0xFF
             except ValueError:
-                pass
+                return
+            self._update_meter_id(meter_id, notify=notify)
+
+    def _update_meter_id(self, meter_id: int, *, notify: bool = True) -> None:
+        if meter_id == self.meter_id:
+            return
+        prev_protocol_type = type(self.protocol)
+        self.meter_id = meter_id
+        self.protocol = get_protocol(meter_id)
+        if not self.device_info.get("serial_number"):
+            self.device_info["serial_number"] = f"{self.client_id:02X}.{meter_id:02X}"
+        if isinstance(self.protocol, TreadmillReadOnlyProtocol):
+            _LOGGER.info(
+                "IConsole: Unverified MeterID %02X.%02X on %s; using read-only protocol",
+                self.client_id,
+                meter_id,
+                self.name,
+            )
+        if (
+            notify
+            and type(self.protocol) is not prev_protocol_type
+            and self._on_protocol_change
+        ):
+            self._on_protocol_change()
+
+    @property
+    def _effective_mid(self) -> int:
+        return self.meter_id if self.meter_id is not None else 0x00
 
     @property
     def is_connected(self) -> bool:
@@ -292,13 +322,16 @@ class IConsoleClient:
 
                 await self._cli.start_notify(self._notify_char, self._on_notify)
                 _LOGGER.info(
-                    "IConsole: Connected to %s (%s), notify=%s, write=%s, IDs=%02X.%02X",
+                    "IConsole: Connected to %s (%s), notify=%s, write=%s, IDs=%s",
                     self.name,
                     self.address,
                     self._notify_char.uuid,
                     self._write_char.uuid,
-                    self.client_id,
-                    self.meter_id,
+                    (
+                        f"{self.client_id:02X}.{self.meter_id:02X}"
+                        if self.meter_id is not None
+                        else "unknown"
+                    ),
                 )
 
                 self._poll_task = asyncio.create_task(self._poll_loop())
@@ -363,14 +396,14 @@ class IConsoleClient:
 
     async def _run_init_sequence(self) -> None:
         """Execute the protocol-specific initialization handshake."""
-        for pkt in self.protocol.build_init_packets(self.client_id, self.meter_id):
+        for pkt in self.protocol.build_init_packets(self.client_id, self._effective_mid):
             if not self.is_connected:
                 return
             await self._write_raw(pkt)
             await asyncio.sleep(0.35)
 
     def _build_status_poll_packet(self) -> bytes:
-        return self.protocol.build_status_poll(self.client_id, self.meter_id)
+        return self.protocol.build_status_poll(self.client_id, self._effective_mid)
 
     async def _poll_loop(self) -> None:
         """Background loop that detects console sleep/wake and runs handshake + status polling."""
@@ -381,7 +414,9 @@ class IConsoleClient:
                 if not self._console_awake:
                     self._got_any_rx = False
                     cid, mid = self.client_id, self.meter_id
-                    if probe_step % 3 == 0:
+                    if mid is None:
+                        probe_pkt = build_packet(CMD_ACK, [0x00, 0x00])
+                    elif probe_step % 3 == 0:
                         probe_pkt = self._build_status_poll_packet()
                     elif probe_step % 3 == 1:
                         probe_pkt = build_packet(CMD_ACK, [0x00, 0x00])
@@ -492,9 +527,7 @@ class IConsoleClient:
     def _handle_frame(self, resp_code: int, payload: list[int]) -> None:
         if resp_code in (RESP_ACK, RESP_MACHINE_CHECK) and len(payload) >= 2:
             self.client_id = payload[0]
-            if payload[1] != self.meter_id:
-                self.meter_id = payload[1]
-                self.protocol = get_protocol(self.meter_id)
+            self._update_meter_id(payload[1])
 
         elif resp_code == RESP_GET_MAX_LEVEL:
             limits = self.protocol.parse_limits(payload)
@@ -512,7 +545,7 @@ class IConsoleClient:
             _LOGGER.debug("IConsole: KeyLock state reported as %s", key_lock_state)
             if key_lock_state == 2:
                 unlock_pkts = self.protocol.build_unlock_packets(
-                    self.client_id, self.meter_id
+                    self.client_id, self._effective_mid
                 )
                 if unlock_pkts:
                     _LOGGER.info(
@@ -546,7 +579,7 @@ class IConsoleClient:
 
             if not self._ready_to_start:
                 confirm_pkts = self.protocol.build_countdown_confirm_packets(
-                    self.client_id, self.meter_id, telemetry
+                    self.client_id, self._effective_mid, telemetry
                 )
                 if confirm_pkts:
                     self._ready_to_start = True
@@ -590,18 +623,22 @@ class IConsoleClient:
     async def async_start_workout(self) -> None:
         """Send Start/Resume workout packets."""
         for pkt in self.protocol.build_start_packets(
-            self.client_id, self.meter_id, is_paused=(self._workout_state == 2)
+            self.client_id, self._effective_mid, is_paused=(self._workout_state == 2)
         ):
             await self._cmd_queue.put(pkt)
 
     async def async_pause_workout(self) -> None:
         """Send Pause workout packets."""
-        for pkt in self.protocol.build_pause_packets(self.client_id, self.meter_id):
+        for pkt in self.protocol.build_pause_packets(
+            self.client_id, self._effective_mid
+        ):
             await self._cmd_queue.put(pkt)
 
     async def async_stop_workout(self) -> None:
         """Stop the workout using the protocol strategy."""
-        stop_pkts = self.protocol.build_stop_packets(self.client_id, self.meter_id)
+        stop_pkts = self.protocol.build_stop_packets(
+            self.client_id, self._effective_mid
+        )
         if not stop_pkts:
             return
         if not self.protocol.requires_disconnect_on_stop:
@@ -635,7 +672,7 @@ class IConsoleClient:
         """Set target inclination level."""
         incline_int = max(0, min(int(round(value)), int(self.max_incline)))
         pkts = self.protocol.build_incline_packets(
-            self.client_id, self.meter_id, incline_int
+            self.client_id, self._effective_mid, incline_int
         )
         if not pkts:
             return
@@ -649,7 +686,7 @@ class IConsoleClient:
         """Set target speed in km/h."""
         spd = max(0.0, min(round(value, 1), self.max_speed))
         pkts = self.protocol.build_speed_packets(
-            self.client_id, self.meter_id, spd
+            self.client_id, self._effective_mid, spd
         )
         if not pkts:
             return

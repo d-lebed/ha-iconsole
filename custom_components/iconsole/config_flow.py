@@ -40,10 +40,9 @@ class IConsoleConfigFlow(ConfigFlow, domain=DOMAIN):
         self, srv_info: BluetoothServiceInfoBleak
     ) -> dict[str, str]:
         """Try reading DIS (0x180A) briefly; fall back to defaults if device is busy/asleep."""
-        default_info = {
+        default_info: dict[str, str] = {
             "manufacturer": "ChangYow",
-            "model": srv_info.name or "SI1022",
-            "serial_number": "00.D2",
+            "model": srv_info.name or "iConsole+",
         }
         try:
             cli = await establish_connection(
